@@ -4,7 +4,7 @@ describe('promiz library', function(){
 
 
   describe('basic user deferreds', function(){
-
+    return
     function testPromise() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -109,10 +109,24 @@ describe('promiz library', function(){
       })
     })
 
+    it('supports double rejects', function(done) {
+      function doubleReject() {
+        var deferred = promiz.defer()
+        deferred.reject(new Error('abc'))
+        deferred.reject(new Error('def'))
+        return deferred
+      }
+
+      promise.then(doubleReject).fail(function(abc){
+        expect(abc.message).toBe('abc')
+        done()
+      })
+    })
+
   })
 
   describe('error handling', function(){
-
+    return
     function errDefer() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -175,6 +189,77 @@ describe('promiz library', function(){
       })
     })
 
+  })
+
+  describe('throwers', function(){
+    return
+    function testPromise() {
+      var deferred = promiz.defer()
+      process.nextTick(function(){
+        deferred.resolve(22)
+      })
+      return deferred
+    }
+
+    var promise = testPromise()
+
+    it('prevents continuation on done', function(){
+      expect(promise.done()).toBeUndefined()
+      expect(promise.throwing).toBe(true)
+    })
+
+    it('sets throwing to true', function(){
+      promise = testPromise()
+      promise.throws()
+      expect(promise.throwing).toBe(true)
+    })
+
+  })
+
+  describe('spread and all', function(){
+    function testPromise() {
+      var deferred = promiz.defer()
+      process.nextTick(function(){
+        deferred.resolve(22)
+      })
+      return deferred
+    }
+
+    var promise = testPromise()
+
+    it('alls', function(done){
+      promise.then(function(){
+        return [1,2,3]
+      })
+      .all()
+      .then(function(oneTwoThree){
+        expect(oneTwoThree.join('')).toBe('123')
+
+        var prom1 =  testPromise()
+        var prom2 =  testPromise().then()
+        var prom3 =  testPromise().then(function(){ return 33 })
+        var static = 77
+
+        return [prom1, prom2, prom3, static]
+
+      }).all().then(function(list){
+        expect(list[0]).toBe(22)
+        expect(list[1]).toBeUndefined()
+        expect(list[2]).toBe(33)
+        expect(list[3]).toBe(77)
+        done()
+      })
+    })
+
+    it('spreads', function(){
+
+    })
+  })
+
+  describe('asyncronicity', function(){
+    it('is actually always asyncronouse', function(){
+
+    })
   })
 
 })

@@ -4,59 +4,115 @@ var promiz = (function(){
     this.state = 'pending'
     this.value
     this.stack = []
+    this.throwing = false
 
     this.resolve = function(val){
-      process.nextTick(function(){
+      if (this.state === 'pending'){
         this.state = 'resolved'
         this.fire(val)
-      }.bind(this))
+      }
       return this
     }
 
     this.reject = function(val){
-      process.nextTick(function(){
+      if (this.state === 'pending'){
         this.state = 'rejected'
         this.fire(val)
-      }.bind(this))
+      }
       return this
     }
 
     this.then = function(fn, er){
-      this.stack.push([fn, er])
+      this.stack.push([fn || function(){}, er])
       if (this.state !== 'pending') {
-        process.nextTick(function(){
           this.fire()
-        }.bind(this))
       }
       return this
     }
 
     this.done = function(){
-      // TODO
+      this.throwing = true
+      if (this.state !== 'pending') {
+          this.fire()
+      }
+      return void 0
+    }
+
+    this.throws = function(){
+      this.throwing = true
       return this
     }
 
     this.catch = function (fn) {
-      this.stack.push([null, fn])
+      this.stack.push([null, fn || function(){}])
       if (this.state !== 'pending') {
-        process.nextTick(function(){
           this.fire()
-        }.bind(this))
       }
       return this
     }
+
     this.fail = function (fn) {
       return this.catch(fn)
     }
+
     this.nodeify = function () {
       // TODO
     }
+
     this.spread = function (fn, er) {
-
+      return this.all().then(function(list){
+           return fn ? fn.apply(void 0, list) :  null
+      }, er)
     }
-    this.all = function () {
-      // TODO
 
+    this.all = function () {
+      var self = this
+
+      this.stack.push([function(list){
+
+        list = list instanceof Array ? list : []
+
+        if (list.length === 0){
+          return list
+        }
+
+        self.state = 'pending'
+        var cnt = 0
+        var errored = false
+
+        function checkDone(){
+          if(cnt !== list.length) {
+            return
+          }
+          self.resolve(list)
+        }
+
+        list.forEach(function(val, i){
+          if(val && val.then){
+
+            val.then(function(res){
+              list[i] = res
+              cnt++
+              checkDone()
+            }, function(err){
+              self.reject(err)
+            })
+          } else {
+            list[i] = val
+            cnt++
+            checkDone()
+          }
+
+        })
+
+        return list
+      }, null])
+
+      if (this.state !== 'pending') {
+          this.fire()
+      }
+
+      return this
     }
 
     this.fire = function(val){
@@ -70,25 +126,19 @@ var promiz = (function(){
           try {
 
             val = this.value = fn.call(void 0, val)
-            if(val && val.then && (val.catch || val.fail)) {
+            if(val && val.then) {
               var previousState = this.state
               this.state = 'pending'
               var promise = val.then(function(v){
-                val = this.value = v
-                this.resolve(v)
-              }.bind(this))
 
-              var catcher = function(err){
+                val = this.value = v
+
+                this.resolve(v)
+              }.bind(this), function(err){
                 val = this.value = err
                 if(previousState !== 'rejected') this.stack.unshift(entry)
                 this.reject(err)
-              }.bind(this)
-
-              if (promise.catch) {
-                promise.catch(catcher)
-              } else {
-                promise.fail(catcher)
-              }
+              }.bind(this))
 
             } else if (this.state === 'rejected') {
               this.state = 'resolved'
@@ -99,6 +149,10 @@ var promiz = (function(){
             this.state = 'rejected'
           }
         }
+      }
+
+      if(this.throwing && this.stack.length === 0 && this.state === 'rejected') {
+        throw this.value
       }
     }
 
