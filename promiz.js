@@ -55,8 +55,20 @@ var promiz = (function(){
       return this.catch(fn)
     }
 
-    this.nodeify = function () {
-      // TODO
+    this.nodeify = function (cb) {
+      if(cb) {
+        this.then(function(val){
+          process.nextTick(function(){
+            cb(null, val)
+          })
+          return val
+        }, function(err){
+          process.nextTick(function(){
+            cb(err)
+          })
+        })
+      }
+      return this
     }
 
     this.spread = function (fn, er) {
@@ -167,12 +179,33 @@ var promiz = (function(){
       var deferred = new defer()
       var args = Array.apply([], arguments)
       var fn = args.shift()
-      deferred.resolve(fn.call(void 0, args))
+      try {
+        var val = fn.apply(void 0, args)
+        deferred.resolve(val)
+      } catch(e) {
+        deferred.reject(e)
+      }
+
       return deferred
     },
 
     nfcall: function() {
+      var deferred = new defer()
+      var args = Array.apply([], arguments)
+      var fn = args.shift()
+      try {
+        args.push(function(err, val){
+          if(err) {
+            return deferred.reject(err)
+          }
+          return deferred.resolve(val)
+        })
+        fn.apply(void 0, args)
+      } catch(e){
+        deferred.reject(e)
+      }
 
+      return deferred
     },
   }
 

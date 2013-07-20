@@ -258,7 +258,122 @@ describe('promiz library', function(){
 
   describe('asyncronicity', function(){
     it('is actually always asyncronouse', function(){
+      // WONT-FIX: Implementing this feature will slow down calls significantly in browsers
+    })
+  })
 
+  describe('nodeify', function(){
+    function testPromise() {
+      var deferred = promiz.defer()
+      process.nextTick(function(){
+        deferred.resolve(22)
+      })
+      return deferred
+    }
+
+    var promise = testPromise()
+
+    it('lets a promise terminate with a node-style callback', function(done){
+      function cb(err, val){
+        expect(val).toBe(3)
+        done()
+      }
+      promise.then(function(){
+        return 3
+      }).nodeify(cb)
+    })
+
+    it('terminates with a node style callback and passes errors down', function(done){
+      function cb(err, val){
+        expect(err.message).toBe('abc')
+        done()
+      }
+      promise.then(function(){
+        throw new Error('abc')
+      }).nodeify(cb)
+    })
+
+    it('still returns a promise to chain off of', function(done){
+      testPromise().then(function(){
+        return 3
+      }).nodeify(function(){}).then(function(val){
+        expect(val).toBe(3)
+        return 11
+      }).nodeify().then(function(val){
+        expect(val).toBe(11)
+        done()
+      })
+    })
+  })
+
+  describe('fcall', function(){
+    it('calls a function and returns a promise', function(done){
+      promiz.fcall(function(a, two, tr){
+        expect(a).toBe('a')
+        expect(two).toBe(2)
+        expect(tr).toBe(true)
+        return [a, two, tr]
+      }, 'a', 2, true).then(function(list){
+        expect(list.length).toBe(3)
+        done()
+      })
+    })
+
+    it('properly handles errors thrown by the function', function(done){
+      promiz.fcall(function(){
+        throw new Error('abc')
+      }).then(function(){
+        done(new Error('fcall did catch throw properly'))
+      }).catch(function(err){
+        expect(err.message).toBe('abc')
+        done()
+      })
+    })
+  })
+
+  describe('nfcall', function(){
+    it('calls a node-style function and returns a promise', function(done){
+      function nodeStyle(val1, val2, val3, cb){
+        expect(val1).toBe('a')
+        expect(val2).toBe(2)
+        expect(val3).toBe(true)
+        process.nextTick(function(){
+          cb(null, 88)
+        })
+      }
+
+      promiz.nfcall(nodeStyle, 'a', 2, true).then(function(val){
+        expect(val).toBe(88)
+        done()
+      })
+    })
+
+    it('properly handles errors returned by the function', function(done){
+      function nodeStyle(cb){
+        process.nextTick(function(){
+          cb(new Error('abc'))
+        })
+      }
+
+      promiz.nfcall(nodeStyle).then(function(){
+        done(new Error('nfcall did not catch throw properly'))
+      }).fail(function(err){
+        expect(err.message).toBe('abc')
+        done()
+      })
+    })
+
+    it('properly handles errors thrown by the function', function(){
+      function nodeStyle(cb){
+        throw new Error('abc')
+      }
+
+      promiz.nfcall(nodeStyle).then(function(){
+        done(new Error('nfcall did not catch throw properly'))
+      }).fail(function(err){
+        expect(err.message).toBe('abc')
+        done()
+      })
     })
   })
 
