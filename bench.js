@@ -2,12 +2,12 @@ var Promiz = require('./promiz')
 var Q = require('q')
 var async = require('async')
 
-console.time('Promiz')
+console.log('---Simple single async call 10000 times---\n')
 
 var target = 100000
 var cnt = 0
-function promiz(){
 
+function promiz(){
   if(cnt === target) {
     console.timeEnd('Promiz')
     cnt = 0
@@ -18,16 +18,17 @@ function promiz(){
 
   var d = Promiz.defer()
   d.then(function(){
-    process.nextTick(function(){
       promiz()
-    })
   })
-  d.resolve()
+  process.nextTick(function(){
+    d.resolve()
+  })
 }
+
+console.time('Promiz')
 promiz()
 
 function q(){
-
   if(cnt === target) {
     console.timeEnd('Q')
     cnt=0
@@ -38,27 +39,109 @@ function q(){
 
   var d = Q.defer()
   d.promise.then(function(){
-    process.nextTick(function(){
       q()
-    })
   })
-  d.resolve()
+  process.nextTick(function(){
+    d.resolve()
+  })
 }
 
 function asy() {
+  if(cnt === target) {
+    console.timeEnd('async')
+    return advanced()
+  }
+  cnt++
+
+  process.nextTick(function(){
+    async.series([
+      function(cb){
+        return cb()
+      }
+    ], function(err, res){
+          asy()
+    })
+  })
+}
+
+function advanced() {
+  console.log('\n---Advanced parallel + waterfall style 10000 times---\n')
+  cnt = 0
+  console.time('Promiz')
+  promizAdvanced()
+}
+
+function stub(val){
+  return val || 1
+}
+
+function promizAdvanced() {
+  if(cnt === target) {
+    console.timeEnd('Promiz')
+    cnt = 0
+    console.time('Q')
+    return qAdvanced()
+  }
+  cnt++
+
+  var d = Promiz.defer()
+  d.then(function(){
+      return [Promiz.fcall(stub, 1),
+              Promiz.fcall(stub, 2),
+              Promiz.fcall(stub, 3)]
+  }).all().then(function(){
+    promizAdvanced()
+  })
+  process.nextTick(function(){
+    d.resolve()
+  })
+}
+
+function qAdvanced() {
+  if(cnt === target) {
+    console.timeEnd('Q')
+    cnt=0
+    console.time('async')
+    return asyncAdvanced()
+  }
+  cnt++
+
+  var d = Q.defer()
+  d.promise.then(function(){
+      return [Q.fcall(stub, 1), Q.fcall(stub, 2), Q.fcall(stub, 3)]
+  }).all().then(function(){
+    qAdvanced()
+  })
+  process.nextTick(function(){
+    d.resolve()
+  })
+}
+
+function asyncAdvanced() {
+
   if(cnt === target) {
     console.timeEnd('async')
     return
   }
   cnt++
 
-  async.series([
-    function(cb){
-      return cb()
-    }
-  ], function(err, res){
-    process.nextTick(function(){
-        asy()
-      })
+  process.nextTick(function(){
+    async.series([
+      function(cb){
+        return cb()
+      }
+    ], function(err, res){
+          async.parallel([
+            function(cb){
+              cb(null, stub(1))
+            }, function(cb){
+              cb(null, stub(2))
+            }, function(cb){
+              cb(null, stub(3))
+            }
+          ], function(err, res){
+            asyncAdvanced()
+          })
+    })
   })
 }
