@@ -215,6 +215,6 @@
   if(typeof module !== 'undefined' && module.exports) {
     module.exports = promiz
   } else {
-    this.promiz = promiz
+    this.Promiz = promiz
   }
 })()
