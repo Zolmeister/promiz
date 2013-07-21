@@ -48,21 +48,12 @@
         return void 0
       }
 
-      this.throws = function(){
-        this.throwing = true
-        return this
-      }
-
-      this.catch = function (fn) {
+      this.fail = function (fn) {
         this.stack.push([null, fn || function(){}])
         if (this.state !== 'pending') {
           this.fire()
         }
         return this
-      }
-
-      this.fail = function (fn) {
-        return this.catch(fn)
       }
 
       this.nodeify = function (cb) {

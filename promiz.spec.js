@@ -66,7 +66,7 @@ describe('promiz library', function(){
       promise.then(errDefer).then(function(){
         // This should not be called
         done(new Error('then recieved an error'))
-      }).catch(function(err) {
+      }).fail(function(err) {
         expect(err).toBeDefined()
         expect(err.message).toBe('abc')
         done()
@@ -88,7 +88,7 @@ describe('promiz library', function(){
       }).fail(function(err) {
         expect(err).toBeDefined()
         expect(err.message).toBe('def')
-      }).catch(function(err){
+      }).fail(function(err){
         done(new Error('exception transcended a fail'))
       }).then(function(){
         done()
@@ -141,12 +141,12 @@ describe('promiz library', function(){
       promise.then(function(err){
         console.log('errr', err)
         done(new Error('then recieved an error'))
-      }).catch(function(err){
+      }).fail(function(err){
         expect(err).toBeDefined()
         expect(err.message).toBe('abc')
       }).fail(function(){
         done(new Error('then recieved an error'))
-      }).catch(function(){
+      }).fail(function(){
         done(new Error('then recieved an error'))
       }).then(function(){
         done()
@@ -155,7 +155,7 @@ describe('promiz library', function(){
 
     it('handles async errors properly', function(done){
       promise.then(function(){
-        return errDefer().catch(function(){
+        return errDefer().fail(function(){
           return 11
         })
       }).then(function(eleven) {
@@ -173,13 +173,13 @@ describe('promiz library', function(){
         return 99
       }).then(function(ninetyNine){
         expect(ninetyNine).toBe(99)
-        return errDefer().catch(function(){
+        return errDefer().fail(function(){
           return 44
         })
       }).then(function(fortyFour){
         expect(fortyFour).toBe(44)
         throw new Error('ghi')
-      }).catch(function(err){
+      }).fail(function(err){
         expect(err).toBeDefined()
         expect(err.message).toBe('ghi')
       }).then(errDefer, function(err) {
@@ -324,7 +324,7 @@ describe('promiz library', function(){
         throw new Error('abc')
       }).then(function(){
         done(new Error('fcall did catch throw properly'))
-      }).catch(function(err){
+      }).fail(function(err){
         expect(err.message).toBe('abc')
         done()
       })
