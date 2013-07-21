@@ -1,4 +1,4 @@
-promiz
+Promiz
 ======
 <a href="http://promises-aplus.github.com/promises-spec">
     <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"
@@ -10,7 +10,7 @@ A proper compact promise (promises/A+ spec compliant) library.
 ```javascript
 function testPromise(val) {
     // An example asyncronous promise function
-    var deferred = promiz.defer()
+    var deferred = Promiz.defer()
     setTimeout(function(){
         deferred.resolve(val)
     }, 0)
@@ -46,13 +46,13 @@ testPromise(22).then(function(twentyTwo){
 // .fail(function(err){ })
 ```
 
-## Building your own promises with promiz
+## Building your own promises with Promiz
 Promiz has many helper functions to help you convert regular functions into promises
-#### promiz.defer()
+#### Promiz.defer()
 ```javascript
 function testPromise(val) {
     // create a new instance of a deffered object (a `promise`)
-    var deferred = promiz.defer()
+    var deferred = Promiz.defer()
     setTimeout(function(){
         if (val === 42) {
             deferred.resolve('correct')
@@ -65,7 +65,7 @@ function testPromise(val) {
 }
 testPromise(42).then()
 ```
-#### promiz.fcall() (function call)
+#### Promiz.fcall() (function call)
 ```javascript
 function testFn(val){
     if (val === 42){
@@ -73,7 +73,7 @@ function testFn(val){
     }
     throw new Error('incorrect input')
 }
-promiz.fcall(testFn, 42).then()
+Promiz.fcall(testFn, 42).then()
 ```
 #### promiz.nfcall() (node function call)
 ```javascript
@@ -84,7 +84,7 @@ function nodeFn(val, callback) {
     return callback(new Error('incorrect input'))
 }
 
-promiz.nfcall(nodeFn, 42).then()
+Promiz.nfcall(nodeFn, 42).then()
 ```
 
 ## Promise methods
