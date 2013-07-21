@@ -5,7 +5,16 @@
          align="right" alt="Promises/A+ logo" />
 </a>
 A proper compact promise (promises/A+ spec compliant) library.
-
+## Install
+```bash
+# Node.js
+npm install promiz --save
+```
+```html
+<!-- Browser -->
+<script src='promiz.js'></script>
+```
+Size: < 1Kb  (730 bytes) minified + gzip 
 ## What are promises?
 ```javascript
 function testPromise(val) {
