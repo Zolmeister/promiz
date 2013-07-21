@@ -142,6 +142,8 @@ dualFunction(function(err, val){ })
 ```
 
 ### Notes
- - If your entire promise chain is comprised of syncronous functions, the promise will run syncronously
+ - The promise chain will try to run syncronoously if possible (technically this breaks spec, but it's much faster and so worth it)
+ - .then() runs ~1.2x faster than async.series() in micro benchmarks (see bench.js)
+ - It's also faster than the Q promise library by about ~6x in micro benchmarks (see bench.js)
 
 ## Licence: MIT
