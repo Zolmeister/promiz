@@ -26,7 +26,7 @@ testPromise(22).then(function(twentyTwo){
 
     return testPromise(99)
 }).then(function(ninetyNine){
-    // The inner promise was resolved asyncronouslu, and its value passed in
+    // The inner promise was resolved asynchronously, and its value passed in
     // If you've ever used the async library, it's akin to a waterfall
     // Finally, one last mind bending trick
 
@@ -38,18 +38,18 @@ testPromise(22).then(function(twentyTwo){
     return list
 }).spread(function(eleven, thirtyThree, fiftyFive){
     // There you go, now you have a general idea of how promises work
-    // To asnwer the original question, a promise is just a deferred object with a `then` function
+    // To asnwer the original question, a promise is just a special deferred object
 
 // .done() makes sure that if any errors occured durring execution, they get thrown
 }).done()
-// alternatively, catch errors with the `catch` function
+// alternatively, catch errors with the `fail` function
 // .fail(function(err){ })
 ```
 
 ## Building your own promises with promiz
 Promiz has many helper functions to help you convert regular functions into promises
+#### promiz.defer()
 ```javascript
-// Resolve/Reject defer()
 function testPromise(val) {
     // create a new instance of a deffered object (a `promise`)
     var deferred = promiz.defer()
@@ -64,8 +64,9 @@ function testPromise(val) {
     return deferred
 }
 testPromise(42).then()
-
-// fcall (function call)
+```
+#### promiz.fcall() (function call)
+```javascript
 function testFn(val){
     if (val === 42){
         return 'correct'
@@ -73,8 +74,9 @@ function testFn(val){
     throw new Error('incorrect input')
 }
 promiz.fcall(testFn, 42).then()
-
-// nfcall (node function call)
+```
+#### promiz.nfcall() (node function call)
+```javascript
 function nodeFn(val, callback) {
     if (val === 42) {
         return callback(null, 'correct')
@@ -86,12 +88,13 @@ promiz.nfcall(nodeFn, 42).then()
 ```
 
 ## Promise methods
-#### .then()
+#### .then(:success, :error (optional))
 ```javascript
-// .then() takes an optional second error handler, which will catch all errors from previous calls including the current success call
+// .then() takes an optional second error handler, which will catch all errors from previous calls
+// including the current success call
 promise.then(function success(){}, function error(){})
 ```
-#### .spread()
+#### .spread(:success)
 ```javascript
 // .spread() calls .all() and then `applys` over the target function
 promise.then(function(){ return [promise(), promise()] }).spread(function(one, two){ })
@@ -99,9 +102,12 @@ promise.then(function(){ return [promise(), promise()] }).spread(function(one, t
 #### .all()
 ```javascript
 // resolves all promises in the result array
-promise.then(function(){ return [promise(), promise()] }).all().then(function(list){ /* all promises have been resolved */})
+promise
+.then(function(){ return [promise(), promise()] })
+.all() // all()
+.then(function(list){ /* all promises have been resolved */})
 ```
-#### .fail()
+#### .fail(:error)
 ```javascript
 // catches any errors that have been thrown thus far
 promise.then(function(){ throw new Error('hello') }).fail(function(err){ })
@@ -112,9 +118,10 @@ promise.then(function(){ throw new Error('hello') }).fail(function(err){ })
 // This ends the promise chain
 promise.done()
 ```
-#### .nodeify()
+#### .nodeify(:callback)
 ```javascript
-// Sometimes you may need to support both promises and callbacks (eg. a developer on your team doesn't know promises)
+// Sometimes you may need to support both promises and callbacks
+// (eg. a developer on your team doesn't know promises)
 // This function allowes you to create dual functions, that can act like both
 function dualFunction(/* optional callback */ callback){
     return promise.nodeify(callback)
@@ -127,4 +134,5 @@ dualFunction(function(err, val){ })
 
 ### Notes
  - If your entire promise chain is comprised of syncronous functions, the promise will run syncronously
+
 ## Licence: MIT
