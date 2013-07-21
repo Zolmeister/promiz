@@ -1,9 +1,10 @@
 var Promiz = require('./promiz')
 var Q = require('q')
+var async = require('async')
 
 console.time('Promiz')
 
-var target = 2000
+var target = 100000
 var cnt = 0
 function promiz(){
 
@@ -13,16 +14,13 @@ function promiz(){
     console.time('Q')
     return q()
   }
-  if(cnt === 2855){
-    console.log('okkk')
-  }
   cnt++
-
-
 
   var d = Promiz.defer()
   d.then(function(){
-    promiz()
+    process.nextTick(function(){
+      promiz()
+    })
   })
   d.resolve()
 }
@@ -32,13 +30,35 @@ function q(){
 
   if(cnt === target) {
     console.timeEnd('Q')
-    return
+    cnt=0
+    console.time('async')
+    return asy()
   }
   cnt++
 
   var d = Q.defer()
   d.promise.then(function(){
-    q()
+    process.nextTick(function(){
+      q()
+    })
   })
   d.resolve()
+}
+
+function asy() {
+  if(cnt === target) {
+    console.timeEnd('async')
+    return
+  }
+  cnt++
+
+  async.series([
+    function(cb){
+      return cb()
+    }
+  ], function(err, res){
+    process.nextTick(function(){
+        asy()
+      })
+  })
 }
