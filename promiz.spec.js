@@ -244,15 +244,21 @@ describe('promiz library', function(){
 
       }).all().then(function(list){
         expect(list[0]).toBe(22)
-        expect(list[1]).toBeUndefined()
         expect(list[2]).toBe(33)
         expect(list[3]).toBe(77)
         done()
       })
     })
 
-    it('spreads', function(){
-
+    it('spreads', function(done){
+      testPromise().then(function(){
+        return [1, 2, testPromise().then(function(){ return 3 })]
+      }).spread(function(one, two, three){
+        expect(one).toBe(1)
+        expect(two).toBe(2)
+        expect(three).toBe(3)
+        done()
+      })
     })
   })
 
