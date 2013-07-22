@@ -141,16 +141,15 @@
     this.all = function () {
       var self = this
 
+      // create a new deferred, to be resolved when we finish
+      var def = new defer()
+
       // Add a special function to the stack, which takes in the list of promise objects
       this.stack.push([function(list){
         list = list ? (list instanceof Array ? list : [list]) : []
-
         if (list.length === 0){
           return list
         }
-
-        // pause stack execution until all promises resolve
-        self.state = 'pending'
 
         // We count up resolved and match it to the length of the list of promises
         // This lets us know when we've finished
@@ -161,7 +160,7 @@
           if(cnt !== len) {
             return
           }
-          self.resolve(list)
+          def.resolve(list)
         }
 
         // iterate over the list, resolving each value
@@ -173,14 +172,13 @@
           (function(){
             var i = ind
             var val = list[i]
-
             if(val && val.then){
             val.then(function(res){
               list[i] = res
               cnt++
               checkDone()
             }, function(err){
-              self.reject(err)
+              def.reject(err)
             })
           } else {
             list[i] = val
@@ -190,14 +188,14 @@
           })()
         }
 
-        return list
+        return null
       }, null])
 
       if (this.state !== 'pending') {
         this.fire()
       }
 
-      return this
+      return def
     }
 
     // This is our main execution thread
@@ -241,6 +239,8 @@
                 self.reject(err)
               })
 
+            } else {
+              this.state = 'resolved'
             }
           } catch (e) {
 

@@ -4,7 +4,7 @@ describe('promiz library', function(){
 
 
   describe('basic user deferreds', function(){
-    return
+
     function testPromise() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -126,7 +126,7 @@ describe('promiz library', function(){
   })
 
   describe('error handling', function(){
-    return
+
     function errDefer() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -192,7 +192,7 @@ describe('promiz library', function(){
   })
 
   describe('throwers', function(){
-    return
+
     function testPromise() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -204,14 +204,7 @@ describe('promiz library', function(){
     var promise = testPromise()
 
     it('prevents continuation on done', function(){
-      expect(promise.done()).toBeUndefined()
-      expect(promise.throwing).toBe(true)
-    })
-
-    it('sets throwing to true', function(){
-      promise = testPromise()
-      promise.throws()
-      expect(promise.throwing).toBe(true)
+      expect(promise.done()).toBe(null)
     })
 
   })
