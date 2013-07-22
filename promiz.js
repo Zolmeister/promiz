@@ -92,6 +92,9 @@
     // End the promise chain by returning null
     this.done = function(){
       this.failing = true
+      if (this.state !== 'pending') {
+        this.fire()
+      }
       return null
     }
 
@@ -257,13 +260,15 @@
         }
       }
 
+      // If the `failing` flag has been set, and we have exausted the stack, and we have an error
+      // Throw the error
+      if(this.failing && this.stack.length === 0 && this.state === 'rejected') {
+        throw this.val
+      }
+
     }
 
-    // If the `failing` flag has been set, and we have exausted the stack, and we have an error
-    // Throw the error
-    if(this.failing && this.stack.length === 0 && this.state === 'rejected') {
-      throw this.val
-    }
+
   }
 
   // Export our library object, either for node.js or as a globally scoped variable

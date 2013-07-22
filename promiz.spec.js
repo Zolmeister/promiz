@@ -138,6 +138,7 @@ describe('promiz library', function(){
     var promise = errDefer()
 
     it('handles basic errors properly', function(done) {
+
       promise.then(function(err){
         console.log('errr', err)
         done(new Error('then recieved an error'))
