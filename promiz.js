@@ -205,7 +205,7 @@
     // Here is where we consume the stack of promises
     this.fire = function (val) {
       var self = this
-      val = this.val = typeof val !== 'undefined' ? val : this.val
+      this.val = typeof val !== 'undefined' ? val : this.val
 
       // Iterate through the stack
       while(this.stack.length && this.state !== 'pending') {
@@ -215,17 +215,17 @@
 
         if(fn) {
           try {
-            val = this.val = fn.call(null, val)
+            this.val = fn.call(null, this.val)
 
             // If the value returned is a promise, resolve it
-            if(val && typeof val.then === 'function') {
+            if(this.val && typeof this.val.then === 'function') {
               var prevState = this.state
 
               // Halt stack execution until the promise resolves
               this.state = 'pending'
 
               // resolving
-              val.then(function(v){
+              this.val.then(function(v){
 
                 // success callback
                 self.resolve(v)
@@ -250,7 +250,7 @@
             // the function call failed, lets reject ourselves
             // and re-run the stack item in case it can handle an error case
             // but only if we didn't just do that (eg. the error function of on the stack threw)
-            val = this.val = e
+            this.val = e
             if(this.state !== 'rejected' && entry[1]) {
               this.stack.unshift(entry)
             }

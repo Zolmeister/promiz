@@ -14,7 +14,7 @@ npm install promiz --save
 <!-- Browser -->
 <script src='promiz.js'></script>
 ```
-Size: < 1Kb  (786 bytes) minified + gzip
+Size: < 1Kb  (625 bytes) minified + gzip
 ## What are promises?
 ```javascript
 function testPromise(val) {
