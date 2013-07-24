@@ -4,7 +4,7 @@
     <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"
          align="right" alt="Promises/A+ logo" />
 </a>
-A proper compact promise (promises/A+ spec compliant) library.
+A proper compact promise (promises/A+ spec compliant) library. ([How it was built](http://www.zolmeister.com/2013/07/promizjs.html))
 ## Install
 ```bash
 # Node.js
