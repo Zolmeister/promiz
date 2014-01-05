@@ -4,6 +4,7 @@
   "description": "A proper compact promise (promises/A+ spec compliant) library.",
   "main": "promiz.js",
   "scripts": {
+    "spec": "promises-aplus-tests test-adapter",
     "test": "jasmine-node ."
   },
   "repository": {
@@ -23,6 +24,9 @@
     "async",
     "flow control"
   ],
+  "devDependencies": {
+    "promises-aplus-tests": "2.0.x"
+  },
   "author": "Zolmeister",
   "license": "MIT",
   "gitHead": "381d65d8abe30f2077f3f9d7ccdcb41e58a8fb5a"
