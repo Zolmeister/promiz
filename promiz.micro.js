@@ -15,40 +15,31 @@
     self['promise'] = self
     var state = 0,
       val = 0,
-      prev = 0,
       fn = fn || 0,
       er = er || 0,
       next = [];
 
-
     self['resolve'] = function (v) {
       if (!state) {
-        if (prev && !prev.state) return prev.resolve(v)
         val = v
         state = 1
 
-        setImmediate(function () {
-          fire()
-        })
+        setImmediate(fire)
       }
     }
 
     self['reject'] = function (v) {
       if (!state) {
-        if (prev && !prev.state) return prev.reject(v)
         val = v
         state = 2
 
-        setImmediate(function () {
-          fire()
-        })
+        setImmediate(fire)
       }
     }
 
     self['then'] = function (fn, er) {
       var p = new promise(fn, er)
       next.push(p)
-      p.prev = self
       if (state == 3) {
         p.resolve(val)
       }
@@ -59,7 +50,7 @@
     }
 
     var finish = function (type) {
-      state = type
+      state = type || 4
 
       if (state == 3) {
         next.map(function (p) {
@@ -77,9 +68,9 @@
     // ref : reference to 'then' function
     // cb, ec, cn : successCallback, failureCallback, notThennableCallback
     var thennable = function (ref, cb, ec, cn) {
-      if (typeof val == 'object' & typeof ref == 'function') {
+      if (typeof val == 'object' && typeof ref == 'function') {
         try {
-          
+
           // cnt protects against abuse calls from spec checker
           var cnt = 0
           ref.call(val, function x(v) {
@@ -98,9 +89,9 @@
       } else {
         cn()
       }
-    }
+    };
 
-    var fire = function () {
+    function fire() {
 
       // check if it's a thenable
       var ref;
@@ -119,50 +110,41 @@
         state = 2
         fire()
       }, function () {
-        if (state == 1 & typeof fn == 'function') {
-          try {
+        try {
+          if (state == 1 && typeof fn == 'function') {
             val = fn(val)
-          } catch (e) {
-            val = e
-            return finish(4)
           }
-        }
 
-        if (state == 2 & typeof er == 'function') {
-          try {
+          if (state == 2 && typeof er == 'function') {
             val = er(val)
             state = 1
-          } catch (e) {
-            val = e
-            return finish(4)
           }
+        } catch (e) {
+          val = e
+          return finish()
         }
 
         if (val == self) {
           val = TypeError()
-          return finish(4)
-        }
-
-        thennable(ref, function () {
-          finish(3)
-        }, function () {
-          finish(4)
-        }, function () {
-          state == 1 ? finish(3) : finish(4)
-        })
+          finish()
+        } else thennable(ref, function () {
+            finish(3)
+          }, finish, function () {
+            finish(state == 1 && 3)
+          })
 
       })
     }
 
-   
+
   }
 
   // this object gets globalalized/exported
-  
+
   var promiz = {
     // promise factory
     defer: function () {
-      return new promise(0, 0)
+      return new promise()
     }
   }
   // Export our library object, either for node.js or as a globally scoped variable
