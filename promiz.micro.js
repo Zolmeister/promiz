@@ -1,5 +1,5 @@
 (function () {
-
+  
   /**
    * @constructor
    */
@@ -10,21 +10,19 @@
     // 2: rejecting
     // 3: resolved
     // 4: rejected
-    var self = this
+    var self = this,
+      state = 0,
+      val = 0,
+      next = [];
 
     self['promise'] = self
-    var state = 0,
-      val = 0,
-      fn = fn || 0,
-      er = er || 0,
-      next = [];
 
     self['resolve'] = function (v) {
       if (!state) {
         val = v
         state = 1
 
-        setImmediate(fire)
+        setTimeout(fire)
       }
     }
 
@@ -33,7 +31,7 @@
         val = v
         state = 2
 
-        setImmediate(fire)
+        setTimeout(fire)
       }
     }
 
@@ -73,7 +71,7 @@
 
           // cnt protects against abuse calls from spec checker
           var cnt = 0
-          ref.call(val, function x(v) {
+          ref.call(val, function (v) {
             if (cnt++) return
             val = v
             cb()
