@@ -4,7 +4,8 @@
   "description": "A proper compact promise (promises/A+ spec compliant) library.",
   "main": "promiz.js",
   "scripts": {
-    "spec": "promises-aplus-tests test-adapter",
+    "spec": "promises-aplus-tests spec-adapter",
+    "spec-micro": "promises-aplus-tests spec-adapter-micro",
     "test": "jasmine-node ."
   },
   "repository": {
