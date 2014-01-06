@@ -1,5 +1,9 @@
 (function () {
 
+  var setImmediate = typeof setImmediate !== 'undefined' ? setImmediate : function(cb) {
+    setTimeout(cb, 0)
+  }
+  
   /**
    * @constructor
    */
