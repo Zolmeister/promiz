@@ -255,7 +255,7 @@ describe('promiz library', function(){
 
   })
 
-  xdescribe('throwers', function(){
+  describe('throwers', function(){
 
     function testPromise() {
       var deferred = promiz.defer()
@@ -273,7 +273,7 @@ describe('promiz library', function(){
 
   })
 
-  xdescribe('spread and all', function(){
+  describe('spread and all', function(){
     function testPromise() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -319,13 +319,7 @@ describe('promiz library', function(){
     })
   })
 
-  xdescribe('asyncronicity', function(){
-    it('is actually always asyncronouse', function(){
-      // WONT-FIX: Implementing this feature will slow down calls significantly in browsers
-    })
-  })
-
-  xdescribe('nodeify', function(){
+  describe('nodeify', function(){
     function testPromise() {
       var deferred = promiz.defer()
       process.nextTick(function(){
@@ -369,7 +363,7 @@ describe('promiz library', function(){
     })
   })
 
-  xdescribe('fcall', function(){
+  describe('fcall', function(){
     it('calls a function and returns a promise', function(done){
       promiz.fcall(function(a, two, tr){
         expect(a).toBe('a')
@@ -394,7 +388,7 @@ describe('promiz library', function(){
     })
   })
 
-  xdescribe('nfcall', function(){
+  describe('nfcall', function(){
     it('calls a node-style function and returns a promise', function(done){
       function nodeStyle(val1, val2, val3, cb){
         expect(val1).toBe('a')
