@@ -3,7 +3,7 @@
   /**
    * @constructor
    */
-  function promise(fn, er) {
+  function Deferred(fn, er) {
     // states
     // 0: pending
     // 1: resolving
@@ -36,17 +36,17 @@
     }
 
     self['then'] = function (fn, er) {
-      var p = new promise(fn, er)
+      var d = new Deferred(fn, er)
       if (state == 3) {
-        p.resolve(val)
+        d.resolve(val)
       }
       else if (state == 4) {
-        p.reject(val)
+        d.reject(val)
       }
       else {
-        next.push(p)
+        next.push(d)
       }
-      return p
+      return d
     }
 
     var finish = function (type) {
@@ -68,7 +68,7 @@
 
     // ref : reference to 'then' function
     // cb, ec, cn : successCallback, failureCallback, notThennableCallback
-    var thennable = function (ref, cb, ec, cn) {
+    function thennable (ref, cb, ec, cn) {
       if (typeof val == 'object' && typeof ref == 'function') {
         try {
 
@@ -140,18 +140,10 @@
 
   }
 
-  // this object gets globalalized/exported
-
-  var promiz = {
-    // promise factory
-    defer: function () {
-      return new promise()
-    }
-  }
   // Export our library object, either for node.js or as a globally scoped variable
   if (typeof module != 'undefined') {
-    module['exports'] = promiz
+    module['exports'] = Deferred
   } else {
-    this['Promiz'] = promiz
+    this['Promiz'] = Deferred
   }
 })()
