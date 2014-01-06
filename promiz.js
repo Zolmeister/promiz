@@ -1,6 +1,5 @@
 (function () {
-
-  var setImmediate = typeof setImmediate !== 'undefined' ? setImmediate : function(cb) {
+  var now = typeof setImmediate !== 'undefined' ? setImmediate : function(cb) {
     setTimeout(cb, 0)
   }
   
@@ -24,7 +23,7 @@
       self.val = v
       self.state = 'resolving'
 
-      setImmediate(function () {
+      now(function () {
         self.fire()
       })
     }
@@ -36,7 +35,7 @@
       self.val = v
       self.state = 'rejecting'
 
-      setImmediate(function () {
+      now(function () {
         self.fire()
       })
     }

@@ -14,7 +14,7 @@ npm install promiz --save
 <!-- Browser -->
 <script src='promiz.js'></script>
 ```
-Promiz: **586 bytes** (min + gzip) - as reported by uglify.js  
+Promiz: **590 bytes** (min + gzip) - as reported by uglify.js  
 Promiz Micro: **238 bytes** (min + gzip) - as reported by uglify.js
 ## What are promises?
 ```javascript

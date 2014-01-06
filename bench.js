@@ -4,7 +4,7 @@ var async = require('async')
 
 console.log('---Simple single async call 10000 times---\n')
 
-var target = 100000
+var target = 10000
 var cnt = 0
 
 function promiz(){
@@ -27,7 +27,7 @@ function promiz(){
 
 console.time('Promiz')
 promiz()
-
+return 
 function q(){
   if(cnt === target) {
     console.timeEnd('Q')
