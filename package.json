@@ -26,7 +26,10 @@
     "flow control"
   ],
   "devDependencies": {
-    "promises-aplus-tests": "2.0.x"
+    "promises-aplus-tests": "2.0.x",
+    "grunt": "~0.4.2",
+    "grunt-closure-compiler": "0.0.21",
+    "grunt-contrib-uglify": "~0.2.7"
   },
   "author": "Zolmeister",
   "license": "MIT",
