@@ -12,7 +12,7 @@
     // 4: rejected
     var self = this
 
-    self.promise = self
+    self['promise'] = self
     var state = 0,
       val = 0,
       prev = 0,
@@ -21,7 +21,7 @@
       next = [];
 
 
-    self.resolve = function (v) {
+    self['resolve'] = function (v) {
       if (!state) {
         if (prev && !prev.state) return prev.resolve(v)
         val = v
@@ -33,7 +33,7 @@
       }
     }
 
-    self.reject = function (v) {
+    self['reject'] = function (v) {
       if (!state) {
         if (prev && !prev.state) return prev.reject(v)
         val = v
@@ -45,7 +45,7 @@
       }
     }
 
-    self.then = function (fn, er) {
+    self['then'] = function (fn, er) {
       var p = new promise(fn, er)
       next.push(p)
       p.prev = self
@@ -56,10 +56,6 @@
         p.reject(val)
       }
       return p
-    }
-
-    self.fail = function (er) {
-      return self.then(null, er)
     }
 
     var finish = function (type) {
@@ -81,7 +77,7 @@
     // ref : reference to 'then' function
     // cb, ec, cn : successCallback, failureCallback, notThennableCallback
     var thennable = function (ref, cb, ec, cn) {
-      if (typeof val == 'object' && typeof ref == 'function') {
+      if (typeof val == 'object' & typeof ref == 'function') {
         try {
           
           // cnt protects against abuse calls from spec checker
@@ -123,7 +119,7 @@
         state = 2
         fire()
       }, function () {
-        if (state == 1 && typeof fn == 'function') {
+        if (state == 1 & typeof fn == 'function') {
           try {
             val = fn(val)
           } catch (e) {
@@ -132,7 +128,7 @@
           }
         }
 
-        if (state == 2 && typeof er == 'function') {
+        if (state == 2 & typeof er == 'function') {
           try {
             val = er(val)
             state = 1
@@ -162,6 +158,7 @@
   }
 
   // this object gets globalalized/exported
+  
   var promiz = {
     // promise factory
     defer: function () {
@@ -169,9 +166,9 @@
     }
   }
   // Export our library object, either for node.js or as a globally scoped variable
-  if (typeof module !== 'undefined') {
-    module.exports = promiz
+  if (typeof module != 'undefined') {
+    module['exports'] = promiz
   } else {
-    this.Promiz = promiz
+    this['Promiz'] = promiz
   }
 })()

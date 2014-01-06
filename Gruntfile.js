@@ -1,32 +1,25 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
   grunt.initConfig({
-    'closure-compiler': {
+    uglify: {
+      options: {
+        report: 'gzip'
+      },
       promiz: {
-        noreport: true,
-        closurePath: 'closure-compiler',
-        js: 'promiz.js',
-        jsOutputFile: 'promiz.min.js',
-        maxBuffer: Infinity,
-        options: {
-          compilation_level: 'ADVANCED_OPTIMIZATIONS'
+        files: {
+          'promiz.min.js': ['promiz.js']
         }
       },
       micro: {
-        noreport: true,
-        closurePath: 'closure-compiler',
-        js: 'promiz.micro.js',
-        jsOutputFile: 'promiz.micro.min.js',
-        maxBuffer: Infinity,
-        options: {
-          compilation_level: 'ADVANCED_OPTIMIZATIONS'
+        files: {
+          'promiz.micro.min.js': ['promiz.micro.js']
         }
       }
     }
   });
 
-  grunt.loadNpmTasks('grunt-closure-compiler');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  grunt.registerTask('default', ['closure-compiler']);
+  grunt.registerTask('default', ['uglify']);
 
 };
