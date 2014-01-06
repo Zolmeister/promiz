@@ -37,12 +37,14 @@
 
     self['then'] = function (fn, er) {
       var p = new promise(fn, er)
-      next.push(p)
       if (state == 3) {
         p.resolve(val)
       }
-      if (state == 4) {
+      else if (state == 4) {
         p.reject(val)
+      }
+      else {
+        next.push(p)
       }
       return p
     }
@@ -56,11 +58,12 @@
         })
       }
 
-      if (state == 4) {
+      else if (state == 4) {
         next.map(function (p) {
           p.reject(val)
         })
       }
+      next = []
     }
 
     // ref : reference to 'then' function
@@ -113,7 +116,7 @@
             val = fn(val)
           }
 
-          if (state == 2 && typeof er == 'function') {
+          else if (state == 2 && typeof er == 'function') {
             val = er(val)
             state = 1
           }
