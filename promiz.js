@@ -5,12 +5,12 @@
 
     // promise factory
     defer: function(){
-      return new defer()
+      return new promise()
     },
 
     // calls a function and resolved as a promise
-    fcall: function() {
-      var def = new defer()
+    /*fcall: function() {
+      var def = new promise()
       var args = Array.apply([], arguments)
       var fn = args.shift()
       try {
@@ -25,7 +25,7 @@
 
     // calls a node-style function (eg. expects callback as function(err, callback))
     nfcall: function() {
-      var def = new defer()
+      var def = new promise()
       var args = Array.apply([], arguments)
       var fn = args.shift()
       try {
@@ -43,51 +43,293 @@
       }
 
       return def
-    }
+    }*/
   }
 
   // This is the promise object itself
-  function defer(){
-
-    // State transitions from pending to either resolved or rejected
+  function promise(fn, er){
+    this.promise = this
     this.state = 'pending'
+    this.val = null
+    this.next = []
+    this.prev = null
+    this.fn = fn || null
+    this.er = er || null
+    
+    this.resolve = function(val) {
+      if(this.state !== 'pending') return
+      if(this.prev && this.prev.state === 'pending') return this.prev.resolve(val)
+      this.val = val
+      this.state = 'resolving'
+      
+      process.nextTick(function() {
+        this.fire()
+      }.bind(this))
+    }
+    
+    this.reject = function(val) {
+      if(this.state !== 'pending') return
+      if(this.prev && this.prev.state === 'pending') return this.prev.reject(val)
+      this.val = val
+      this.state = 'rejecting'
+      
+      process.nextTick(function() {
+        this.fire()
+      }.bind(this))
+    }
+    
+    this.then = function(fn, er) {
+      var p = new promise(fn, er)
+      this.next.push(p)
+      p.prev = this
+      if(this.state === 'resolved' || this.state === 'rejected') {
+        if(this.state === 'resolved' && this.next) {
+            p.resolve(this.val)
+        }
+        if(this.state === 'rejected' && this.next) {
+            p.reject(this.val)
+        }
+      }
+      return p
+    }
+    
+    this.fail = function(er) {
+      return this.then(null, er)
+    }
+    
+    this.finish = function(type, val) {
+      this.state = type
+      this.val = val || this.val
+      
+      if(this.state === 'resolved' && this.next) {
+        this.next.map(function(p){
+          p.resolve(this.val)
+        }.bind(this))
+      }
+      
+      if(this.state === 'rejected' && this.next) {
+        this.next.map(function(p){
+          p.reject(this.val)
+        }.bind(this))
+      }
+    }
+    
+    this.chain = function(promise, ref) {
+      var self = this
+      
+      if(promise === this) {
+        return this.finish('rejected', new TypeError())
+      }
+      
+      // it's not a thenable, resolve/reject with it's value
+      if(typeof promise !== 'object' || typeof ref !== 'function') {
+        if(this.state === 'resolving')
+          return this.finish('resolved', promise)
+        return this.finish('rejected', promise)
+      }
+
+      try {
+        ref.call(promise, function resolved(val) {
+          self.finish('resolved', val)
+        }, function(val) {
+          self.finish('rejected', val)
+        })
+      } catch(e) {
+        this.finish('rejected', e)
+      }
+      
+    }
+    
+    this.fire = function() {
+      var self = this
+      // check if it's a thenable
+      var promise = this.val
+      if(promise === this) {
+        return this.finish('rejected', new TypeError())
+      }
+      
+      var ref;
+      try {
+        ref = promise && promise.then
+      } catch(e) {
+        this.val = e
+        this.state = 'rejecting'
+        return this.fire()
+      }
+      
+      // it's a thenable chain it
+      if(typeof promise === 'object' && typeof ref === 'function') {
+        try {
+          var cnt=0
+          ref.call(promise, function(val) {
+            if(cnt++!== 0) return
+            self.val = val
+            self.state = 'resolving'
+            self.fire()
+          }, function(val) {
+            if(cnt++!== 0) return
+            self.val = val
+            self.state = 'rejecting'
+            self.fire()
+          })
+        } catch(e) {
+          this.state = 'rejecting'
+          this.val = e
+          this.fire()
+        }
+        return
+      }
+      
+      if(this.state === 'resolving' && typeof this.fn === 'function' ) {
+        try {
+          this.val = this.fn.call(undefined, this.val)
+        } catch(e) {
+          return this.finish('rejected', e)
+        }
+      }
+      
+      if (this.state === 'rejecting' && typeof this.er === 'function') {
+        try {
+          this.val = this.er.call(undefined, this.val)
+          this.state = 'resolving'
+        } catch(e) {
+          return this.finish('rejected', e)
+        }
+      }
+
+      return this.chain(this.val, ref)
+    }
+    
+    // State transitions from pending to either resolved or rejected
+    /*this.state = 'p'
 
     // Our current value
-    this.val = null
+    this.val = val || undefined
 
-    // The current stack of deferred calls that need to be made
-    this.stack = []
-
-    // If there is an unhandled exception durring stack execution, should we throw it?
-    this.failing = false
+    // This is a pointer to the next promise
+    this.next = null
+    
+    // this is a pointer to the previous promise
+    this.previous = null
+    
+    // functions to call
+    this.successFn = null
+    this.failFn = null
 
     // Resolved the promise to a value. Only affects the first time it is called
-    this.resolve = function(val){
-      if (this.state === 'pending'){
-        this.state = 'resolved'
-        this.fire(val)
+    this.resolve = function(val) {
+      this.resolve = function(){}
+      
+      if(this.previous) {
+        return this.previous.resolve(val)
       }
-      return this
+      this.val = val
+      process.nextTick(function() {
+        this.state = 'r'
+        this.fire()
+        this.next = this.q
+      }.bind(this))
+      this.fire()
+      
+      this.q = new promise()
+      this.q.previous = this
+      
+      return this.q
     }
 
     // Rejects the promise with a value. Only affects the first time it is called
-    this.reject = function(val){
-      if (this.state === 'pending'){
-        this.state = 'rejected'
-        this.fire(val)
+    this.reject = function(val) {
+      this.reject = function() {}
+      if(this.previous) {
+        return this.previous.reject(val)
       }
-      return this
+      this.val = val
+      process.nextTick(function() {
+        this.state = 'f'
+        this.fire()
+        this.next = this.q
+      }.bind(this))
+      this.fire()
+      
+      this.q = new promise()
+      this.q.previous = this
+      return this.q
     }
 
     // The heart of the promise, adding a defered call to our call stack
-    this.then = function(fn, er){
-      this.stack.push([fn, er])
-      if (this.state !== 'pending') {
-        this.fire()
+    this.then = function(fn, er) {
+      this.successFn = fn
+      this.failFn = er
+      this.next = new promise()
+      this.next.previous = this
+      
+      if(this.state !== 'p') {
+        process.nextTick(function() {
+          this.fire()
+        }.bind(this))
       }
-      return this
+      
+      return this.next
     }
-
+    
+    this.fire = function() {
+      var res = this.val
+      try {
+        if(this.state === 's' && this.successFn) {
+          res = this.successFn(this.val)
+        }
+        
+        if(this.state === 'f' && this.failFn) {
+          res = this.failFn(this.val)
+        }
+      } catch(e) {
+        if(this.state === 's' && this.failFn) {
+          try {
+            res = this.failFn(e)
+          } catch(e) {
+            res = e
+          }
+        } else {
+          res = e
+        }
+      }
+      if(res && res.then) {
+        res.then(function(val) {
+          if(this.next) {
+            this.next.state = 'r'
+            this.next.val = val
+            this.next.fire()
+          }
+        }.bind(this), function(val) {
+          if(this.failFn) {
+            var res = val
+            try {
+              res = this.failFn(val)
+              this.state = 's'
+            } catch(e) {
+              this.state = 'f'
+              res = e
+            }
+            val = res 
+          }
+          if(this.next) {
+            this.next.state = 'f'
+            this.next.val = val
+            this.next.fire()
+          }
+        }.bind(this))
+      } else if (this.next) {
+        this.next.state = 's'
+        this.next.val = res
+        this.next.fire()
+      }
+    }
+    
+    this.fail = function(fn) {
+      return this.then(null, fn)
+    }
+    */
+    /*
     // If there is an unhandled error, throw it
     // End the promise chain by returning null
     this.done = function(){
@@ -175,7 +417,9 @@
           (function(){
             var i = ind
             var val = list[i]
-            if(val && val.then){
+            if(val && val.then &&
+               typeof val.then === 'function' &&
+               typeof val === 'object'){
             val.then(function(res){
               list[i] = res
               cnt++
@@ -215,10 +459,12 @@
 
         if(fn) {
           try {
-            this.val = fn.call(null, this.val)
+            this.val = fn(this.val)
 
             // If the value returned is a promise, resolve it
-            if(this.val && typeof this.val.then === 'function') {
+            if(this.val &&
+               typeof this.val.then === 'function' &&
+               typeof this.val === 'object') {
               var prevState = this.state
 
               // Halt stack execution until the promise resolves
@@ -243,7 +489,7 @@
               })
 
             } else {
-              this.state = 'resolved'
+              //this.state = 'resolved'
             }
           } catch (e) {
 
@@ -267,7 +513,7 @@
       }
 
     }
-
+*/
 
   }
 
