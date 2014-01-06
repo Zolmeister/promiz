@@ -7,26 +7,26 @@
   function promise(fn, er) {
     // states
     // 0: pending
-    // 1: resoling
+    // 1: resolving
     // 2: rejecting
     // 3: resolved
     // 4: rejected
     var self = this
 
     self.promise = self
-    var state = 'pending',
-      val = null,
-      prev = null,
-      fn = fn || null,
-      er = er || null,
+    var state = 0,
+      val = 0,
+      prev = 0,
+      fn = fn || 0,
+      er = er || 0,
       next = [];
 
 
     self.resolve = function (v) {
-      if (state === 'pending') {
-        if (prev && prev.state === 'pending') return prev.resolve(v)
+      if (!state) {
+        if (prev && !prev.state) return prev.resolve(v)
         val = v
-        state = 'resolving'
+        state = 1
 
         setImmediate(function () {
           fire()
@@ -35,10 +35,10 @@
     }
 
     self.reject = function (v) {
-      if (state === 'pending') {
-        if (prev && prev.state === 'pending') return prev.reject(v)
+      if (!state) {
+        if (prev && !prev.state) return prev.reject(v)
         val = v
-        state = 'rejecting'
+        state = 2
 
         setImmediate(function () {
           fire()
@@ -50,10 +50,10 @@
       var p = new promise(fn, er)
       next.push(p)
       p.prev = self
-      if (state === 'resolved') {
+      if (state == 3) {
         p.resolve(val)
       }
-      if (state === 'rejected') {
+      if (state == 4) {
         p.reject(val)
       }
       return p
@@ -66,13 +66,13 @@
     var finish = function (type) {
       state = type
 
-      if (state === 'resolved') {
+      if (state == 3) {
         next.map(function (p) {
           p.resolve(val)
         })
       }
 
-      if (state === 'rejected') {
+      if (state == 4) {
         next.map(function (p) {
           p.reject(val)
         })
@@ -82,17 +82,17 @@
     // ref : reference to 'then' function
     // cb, ec, cn : successCallback, failureCallback, notThennableCallback
     var thennable = function (ref, cb, ec, cn) {
-      if (typeof val === 'object' && typeof ref === 'function') {
+      if (typeof val == 'object' && typeof ref == 'function') {
         try {
           
           // cnt protects against abuse calls from spec checker
           var cnt = 0
           ref.call(val, function x(v) {
-            if (cnt++ !== 0) return
+            if (cnt++) return
             val = v
             cb()
           }, function (v) {
-            if (cnt++ !== 0) return
+            if (cnt++) return
             val = v
             ec()
           })
@@ -113,47 +113,47 @@
         ref = val && val.then
       } catch (e) {
         val = e
-        state = 'rejecting'
+        state = 2
         return fire()
       }
 
       thennable(ref, function () {
-        state = 'resolving'
+        state = 1
         fire()
       }, function () {
-        state = 'rejecting'
+        state = 2
         fire()
       }, function () {
-        if (state === 'resolving' && typeof fn === 'function') {
+        if (state == 1 && typeof fn == 'function') {
           try {
             val = fn(val)
           } catch (e) {
             val = e
-            return finish('rejected')
+            return finish(4)
           }
         }
 
-        if (state === 'rejecting' && typeof er === 'function') {
+        if (state == 2 && typeof er == 'function') {
           try {
             val = er(val)
-            state = 'resolving'
+            state = 1
           } catch (e) {
             val = e
-            return finish('rejected')
+            return finish(4)
           }
         }
 
-        if (val === self) {
+        if (val == self) {
           val = TypeError()
-          return finish('rejected')
+          return finish(4)
         }
 
         thennable(ref, function () {
-          finish('resolved')
+          finish(3)
         }, function () {
-          finish('rejected')
+          finish(4)
         }, function () {
-          state === 'resolving' ? finish('resolved') : finish('rejected')
+          state == 1 ? finish(3) : finish(4)
         })
 
       })
@@ -234,15 +234,15 @@
     fire = function() {
       var res = self.val
       try {
-        if(self.state === 's' && self.successFn) {
+        if(self.state == 's' && self.successFn) {
           res = self.successFn(self.val)
         }
         
-        if(self.state === 'f' && self.failFn) {
+        if(self.state == 'f' && self.failFn) {
           res = self.failFn(self.val)
         }
       } catch(e) {
-        if(self.state === 's' && self.failFn) {
+        if(self.state == 's' && self.failFn) {
           try {
             res = self.failFn(e)
           } catch(e) {
@@ -293,7 +293,7 @@
     // End the promise chain by returning null
     self.done = function(){
       self.failing = true
-      if (self.state !== 'pending') {
+      if (self.state !== 0) {
         fire()
       }
       return null
@@ -351,7 +351,7 @@
       // Add a special function to the stack, which takes in the list of promise objects
       self.stack.push([function(list){
         list = list ? (list instanceof Array ? list : [list]) : []
-        if (list.length === 0){
+        if (list.length == 0){
           return list
         }
 
@@ -377,8 +377,8 @@
             var i = ind
             var val = list[i]
             if(val && val.then &&
-               typeof val.then === 'function' &&
-               typeof val === 'object'){
+               typeof val.then == 'function' &&
+               typeof val == 'object'){
             val.then(function(res){
               list[i] = res
               cnt++
@@ -397,7 +397,7 @@
         return null
       }, null])
 
-      if (self.state !== 'pending') {
+      if (self.state !== 0) {
         fire()
       }
 
@@ -411,10 +411,10 @@
       self.val = typeof val !== 'undefined' ? val : self.val
 
       // Iterate through the stack
-      while(self.stack.length && self.state !== 'pending') {
+      while(self.stack.length && self.state !== 0) {
         // Get the next stack item
         var entry = self.stack.shift()
-        var fn = self.state === 'rejected' ? entry[1] : entry[0]
+        var fn = self.state == 4 ? entry[1] : entry[0]
 
         if(fn) {
           try {
@@ -422,12 +422,12 @@
 
             // If the value returned is a promise, resolve it
             if(self.val &&
-               typeof self.val.then === 'function' &&
-               typeof self.val === 'object') {
+               typeof self.val.then == 'function' &&
+               typeof self.val == 'object') {
               var prevState = self.state
 
               // Halt stack execution until the promise resolves
-              self.state = 'pending'
+              self.state = 0
 
               // resolving
               self.val.then(function(v){
@@ -440,7 +440,7 @@
 
                 // re-run the stack item if it has an error callback
                 // but only if we weren't already in a rejected state
-                if(prevState !== 'rejected' && entry[1]) {
+                if(prevState !== 4 && entry[1]) {
                   self.stack.unshift(entry)
                 }
 
@@ -448,7 +448,7 @@
               })
 
             } else {
-              //self.state = 'resolved'
+              //self.state = 3
             }
           } catch (e) {
 
@@ -456,18 +456,18 @@
             // and re-run the stack item in case it can handle an error case
             // but only if we didn't just do that (eg. the error function of on the stack threw)
             self.val = e
-            if(self.state !== 'rejected' && entry[1]) {
+            if(self.state !== 4 && entry[1]) {
               self.stack.unshift(entry)
             }
 
-            self.state = 'rejected'
+            self.state = 4
           }
         }
       }
 
       // If the `failing` flag has been set, and we have exausted the stack, and we have an error
       // Throw the error
-      if(self.failing && self.stack.length === 0 && self.state === 'rejected') {
+      if(self.failing && self.stack.length == 0 && self.state == 4) {
         throw self.val
       }
 
@@ -481,7 +481,7 @@
 
     // promise factory
     defer: function () {
-      return new promise(null, null)
+      return new promise(0, 0)
     }
 
     // calls a function and resolved as a promise
@@ -525,6 +525,6 @@
   if (typeof module !== 'undefined') {
     module.exports = promiz
   } else {
-    self.Promiz = promiz
+    this.Promiz = promiz
   }
 })()
