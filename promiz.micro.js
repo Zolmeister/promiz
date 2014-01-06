@@ -24,6 +24,7 @@
 
         setTimeout(fire)
       }
+      return this
     }
 
     self['reject'] = function (v) {
@@ -33,6 +34,7 @@
 
         setTimeout(fire)
       }
+      return this
     }
 
     self['then'] = function (fn, er) {
@@ -51,19 +53,9 @@
 
     var finish = function (type) {
       state = type || 4
-
-      if (state == 3) {
-        next.map(function (p) {
-          p.resolve(val)
-        })
-      }
-
-      else if (state == 4) {
-        next.map(function (p) {
-          p.reject(val)
-        })
-      }
-      next = []
+      next.map(function (p) {
+        state == 3 && p.resolve(val) || p.reject(val)
+      })
     }
 
     // ref : reference to 'then' function
