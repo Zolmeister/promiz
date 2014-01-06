@@ -1,4 +1,4 @@
-var Promiz = require('./promiz.micro');
+var Promiz = require('./../promiz');
 module.exports = {
   resolved: function (value) {
     var d = Promiz.defer();

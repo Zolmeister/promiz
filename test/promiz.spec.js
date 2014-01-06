@@ -1,4 +1,4 @@
-var promiz = require('./promiz')
+var promiz = require('./../promiz')
 
 jasmine.getEnv().defaultTimeoutInterval = 200
 

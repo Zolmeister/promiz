@@ -1,4 +1,4 @@
-![Promiz.js](https://raw.github.com/Zolmeister/promiz/master/logo.png)
+![Promiz.js](https://raw.github.com/Zolmeister/promiz/master/imgs/logo.png)
 ======
 <a href="http://promises-aplus.github.com/promises-spec">
     <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"

@@ -20,7 +20,7 @@ function promiz(){
   d.then(function(){
       promiz()
   })
-  process.nextTick(function(){
+  setImmediate(function(){
     d.resolve()
   })
 }
@@ -41,7 +41,7 @@ function q(){
   d.promise.then(function(){
       q()
   })
-  process.nextTick(function(){
+  setImmediate(function(){
     d.resolve()
   })
 }
@@ -53,7 +53,7 @@ function asy() {
   }
   cnt++
 
-  process.nextTick(function(){
+  setImmediate(function(){
     async.series([
       function(cb){
         return cb()
@@ -92,7 +92,7 @@ function promizAdvanced() {
   }).all().then(function(){
     promizAdvanced()
   })
-  process.nextTick(function(){
+  setImmediate(function(){
     d.resolve()
   })
 }
@@ -112,7 +112,7 @@ function qAdvanced() {
   }).all().then(function(){
     qAdvanced()
   })
-  process.nextTick(function(){
+  setImmediate(function(){
     d.resolve()
   })
 }
@@ -125,7 +125,7 @@ function asyncAdvanced() {
   }
   cnt++
 
-  process.nextTick(function(){
+  setImmediate(function(){
     async.series([
       function(cb){
         return cb()
