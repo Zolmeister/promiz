@@ -16,7 +16,7 @@ npm install promiz --save
 <script src='promiz.js'></script>
 ```
 Promiz: **590 bytes** (min + gzip) - as reported by uglify.js  
-Promiz Micro: **238 bytes** (min + gzip) - as reported by uglify.js
+Promiz Micro: **228 bytes** (min + gzip) - as reported by uglify.js
 ## What are promises?
 ```javascript
 function testPromise(val) {
@@ -43,7 +43,7 @@ testPromise(22).then(function(twentyTwo){
 
     return [testPromise(11), testPromise(33), testPromise(55)]
 }).all().then(function(list){
-    // list === [11, 33, 55]
+    // list === [11, 33, 55]c
     // Yeah, try doing that with async (obviously you could, but it would look hideous)
     // and just because we can
     return list
@@ -68,7 +68,7 @@ function testPromise(val) {
         if (val === 42) {
             deferred.resolve('correct')
         } else {
-            // This throws an error, which can be caught by .catch() or .done()
+            // This throws an error, which can be caught by .fail() or .done()
             deferred.reject(new Error('incorrect input'))
         }
     }, 0)
@@ -144,22 +144,32 @@ dualFunction(function(err, val){ })
 ```
 ## Promiz Micro
 ### (Promises/A+ spec compliant)
-#### Promiz.defer()
+#### new Promiz()
 ```javascript
 function testPromise(val) {
     // create a new instance of a deferred object (a `promise`)
-    var deferred = Promiz.defer()
+    var deferred = new Promiz()
     setTimeout(function(){
         if (val === 42) {
             deferred.resolve('correct')
         } else {
-            // This throws an error, which can be caught by .catch() or .done()
+            // This throws an error, which can be caught by .fail() or .done()
             deferred.reject(new Error('incorrect input'))
         }
     }, 0)
     return deferred
 }
 testPromise(42).then()
+
+// or better yet
+new Promiz().then(function(x){
+        console.log(x+' that')
+        return 'just happened'
+    })
+    .resolve('yeah')
+    .then(function(x){
+        console.log(x)
+    })
 ```
 #### .then(:success, :error (optional))
 ```javascript
