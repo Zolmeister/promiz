@@ -1,7 +1,7 @@
 ![Promiz.js](https://raw.github.com/Zolmeister/promiz/master/imgs/logo.png)
 ======
 <a href="http://promises-aplus.github.com/promises-spec">
-    <img src="http://promises-aplus.github.com/promises-spec/assets/logo-small.png"
+    <img src="http://promises-aplus.github.io/promises-spec/assets/logo-small.png"
          align="right" alt="Promises/A+ logo" />
 </a>
 A proper compact promise (promises/A+ spec compliant) library. ([How it was built](http://www.zolmeister.com/2013/07/promizjs.html))  
