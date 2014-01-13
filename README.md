@@ -4,7 +4,7 @@
     <img src="https://raw.github.com/Zolmeister/promiz/master/imgs/promise-logo-small.png"
          align="right" alt="Promises/A+ logo" />
 </a>
-A proper compact promise (promises/A+ spec compliant) library. ([How it was built](http://www.zolmeister.com/2013/07/promizjs.html))  
+A proper compact promise (promises/A+ spec compliant) library. ([Blog Post](http://www.zolmeister.com/2014/01/promiz-micro-promises-in-228-bytes.html)) ~~([How it was built](http://www.zolmeister.com/2013/07/promizjs.html))~~  
 ![build-status](https://travis-ci.org/Zolmeister/promiz.png?branch=master)
 ## Install
 ```bash
