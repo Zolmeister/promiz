@@ -14,6 +14,11 @@ module.exports = function (grunt) {
         files: {
           'promiz.micro.min.js': ['promiz.micro.js']
         }
+      },
+      mithril: {
+        files: {
+          'promiz.mithril.min.js': ['promiz.mithril.js']
+        }
       }
     }
   });
