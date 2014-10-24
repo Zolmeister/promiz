@@ -2,7 +2,7 @@
   var now = typeof setImmediate !== 'undefined' ? setImmediate : function(cb) {
     setTimeout(cb, 0)
   }
-  
+
   /**
    * @constructor
    */
@@ -119,7 +119,7 @@
       self.fire()
     }, function (v) {
       self.val = v
-      
+
       if (self.state === 'resolving' && typeof self.fn === 'function') {
         try {
           self.val = self.fn.call(undefined, self.val)
@@ -159,7 +159,7 @@
   }
 
   promise.prototype.done = function () {
-    if (this.state = 'rejected' && !this.next) {
+    if (this.state === 'rejected') {
       throw this.val
     }
     return null
@@ -196,7 +196,7 @@
       return typeof fn === 'function' && fn.apply(null, list)
     }, er)
   }
-  
+
   promise.prototype.all = function() {
     var self = this
     return this.then(function(list){
@@ -205,25 +205,25 @@
         p.reject(TypeError)
         return p
       }
-      
+
       var cnt = 0
       var target = list.length
-      
+
       function done() {
         if (++cnt === target) p.resolve(list)
       }
-      
+
       for(var i=0, l=list.length; i<l; i++) {
         var value = list[i]
         var ref;
-        
+
         try {
           ref = value && value.then
         } catch (e) {
           p.reject(e)
           break
         }
-        
+
         (function(i){
           self.thennable(ref, function(val){
             list[i] = val
@@ -286,7 +286,7 @@
       return def
     }
   }
-  
+
   // Export our library object, either for node.js or as a globally scoped variable
   if (typeof module !== 'undefined') {
     module.exports = promiz
