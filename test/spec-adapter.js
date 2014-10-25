@@ -1,14 +1,23 @@
-var Promiz = require('./../promiz');
+var Promise = require('./../promiz');
 module.exports = {
   resolved: function (value) {
-    var d = Promiz.defer();
-    d.resolve(value);
-    return d;
+    return Promise.resolve(value)
   },
   rejected: function (error) {
-    var d = Promiz.defer();
-    d.reject(error);
-    return d;
+    return Promise.reject(error)
   },
-  deferred: Promiz.defer
+  deferred: function () {
+    var promise = new Promise()
+    return {
+      promise: promise,
+      resolve: promise.resolve,
+      reject: promise.reject
+    }
+  },
+  defineGlobalPromise: function (scope) {
+    scope.Promise = Promise
+  },
+  removeGlobalPromise: function (scope) {
+    delete scope.Promise
+  }
 };

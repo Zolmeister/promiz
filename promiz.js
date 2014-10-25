@@ -1,296 +1,174 @@
 (function () {
-  var now = typeof setImmediate !== 'undefined' ? setImmediate : function(cb) {
-    setTimeout(cb, 0)
+
+  Deferred.resolve = function (value) {
+    return new Deferred(function (resolve) {
+      setTimeout(function () {
+        resolve(value)
+      })
+    })
+  }
+  Deferred.reject = function (value) {
+    return new Deferred(function (resolve, reject) {
+      setTimeout(function () {
+        reject(value)
+      })
+    })
   }
 
   /**
    * @constructor
    */
-  function promise(fn, er) {
-    var self = this
+  function Deferred(resolver) {
+    // states
+    // 0: pending
+    // 1: resolving
+    // 2: rejecting
+    // 3: resolved
+    // 4: rejected
+    var self = this,
+      state = 0,
+      val = 0,
+      next = [],
+      fn, er;
 
-    self.promise = self
-    self.state = 'pending'
-    self.val = null
-    self.fn = fn || null
-    self.er = er || null
-    self.next = [];
-  }
+    self['promise'] = self
 
-  promise.prototype.resolve = function (v) {
-    var self = this
-    if (self.state === 'pending') {
-      self.val = v
-      self.state = 'resolving'
+    self['resolve'] = function (v) {
+      fn = this.fn
+      er = this.er
+      if (!state) {
+        val = v
+        state = 1
 
-      now(function () {
-        self.fire()
-      })
-    }
-  }
-
-  promise.prototype.reject = function (v) {
-    var self = this
-    if (self.state === 'pending') {
-      self.val = v
-      self.state = 'rejecting'
-
-      now(function () {
-        self.fire()
-      })
-    }
-  }
-
-  promise.prototype.then = function (fn, er) {
-    var self = this
-    var p = new promise(fn, er)
-    self.next.push(p)
-    if (self.state === 'resolved') {
-      p.resolve(self.val)
-    }
-    if (self.state === 'rejected') {
-      p.reject(self.val)
-    }
-    return p
-  }
-  promise.prototype.fail = function (er) {
-    return this.then(null, er)
-  }
-  promise.prototype.finish = function (type) {
-    var self = this
-    self.state = type
-
-    if (self.state === 'resolved') {
-      self.next.map(function (p) {
-        p.resolve(self.val)
-      })
-    }
-
-    if (self.state === 'rejected') {
-      self.next.map(function (p) {
-        p.reject(self.val)
-      })
-    }
-  }
-
-  // ref : reference to 'then' function
-  // cb, ec, cn : successCallback, failureCallback, notThennableCallback
-  promise.prototype.thennable = function (ref, cb, ec, cn, val) {
-    var self = this
-    val = val || self.val
-    if (typeof val === 'object' && typeof ref === 'function') {
-      try {
-        // cnt protects against abuse calls from spec checker
-        var cnt = 0
-        ref.call(val, function(v) {
-          if (cnt++ !== 0) return
-          cb(v)
-        }, function (v) {
-          if (cnt++ !== 0) return
-          ec(v)
-        })
-      } catch (e) {
-        ec(e)
+        setTimeout(fire)
       }
-    } else {
-      cn(val)
+      return this
     }
-  }
 
-  promise.prototype.fire = function () {
-    var self = this
-    // check if it's a thenable
-    var ref;
+    self['reject'] = function (v) {
+      fn = this.fn
+      er = this.er
+      if (!state) {
+        val = v
+        state = 2
+
+        setTimeout(fire)
+      }
+      return this
+    }
+
+    self['then'] = function (_fn, _er) {
+      fn = _fn
+      er = _er
+      var d = new Deferred()
+      d.fn = _fn
+      d.er = _er
+      if (state == 3) {
+        d.resolve(val)
+      }
+      else if (state == 4) {
+        d.reject(val)
+      }
+      else {
+        next.push(d)
+      }
+      return d
+    }
+
+    var finish = function (type) {
+      state = type || 4
+      next.map(function (p) {
+        state == 3 && p.resolve(val) || p.reject(val)
+      })
+    }
+
     try {
-      ref = self.val && self.val.then
+      if (typeof resolver == 'function')
+        resolver(self['resolve'], self['reject'])
     } catch (e) {
-      self.val = e
-      self.state = 'rejecting'
-      return self.fire()
+      self['reject'](e)
     }
 
-    self.thennable(ref, function (v) {
-      self.val = v
-      self.state = 'resolving'
-      self.fire()
-    }, function (v) {
-      self.val = v
-      self.state = 'rejecting'
-      self.fire()
-    }, function (v) {
-      self.val = v
+    return self
 
-      if (self.state === 'resolving' && typeof self.fn === 'function') {
+    // ref : reference to 'then' function
+    // cb, ec, cn : successCallback, failureCallback, notThennableCallback
+    function thennable (ref, cb, ec, cn) {
+      if ((typeof val == 'object' || typeof val == 'function') && typeof ref == 'function') {
         try {
-          self.val = self.fn.call(undefined, self.val)
-        } catch (e) {
-          self.val = e
-          return self.finish('rejected')
-        }
-      }
 
-      if (self.state === 'rejecting' && typeof self.er === 'function') {
-        try {
-          self.val = self.er.call(undefined, self.val)
-          self.state = 'resolving'
-        } catch (e) {
-          self.val = e
-          return self.finish('rejected')
-        }
-      }
-
-      if (self.val === self) {
-        self.val = TypeError()
-        return self.finish('rejected')
-      }
-
-      self.thennable(ref, function (v) {
-        self.val = v
-        self.finish('resolved')
-      }, function (v) {
-        self.val = v
-        self.finish('rejected')
-      }, function (v) {
-        self.val = v
-        self.state === 'resolving' ? self.finish('resolved') : self.finish('rejected')
-      })
-
-    })
-  }
-
-  promise.prototype.done = function () {
-    if (this.state === 'rejected') {
-      throw this.val
-    }
-    return null
-  }
-
-  promise.prototype.nodeify = function (cb) {
-    if (typeof cb === 'function') return this.then(function (val) {
-        try {
-          cb(null, val)
-        } catch (e) {
-          setImmediate(function () {
-            throw e
+          // cnt protects against abuse calls from spec checker
+          var cnt = 0
+          ref.call(val, function (v) {
+            if (cnt++) return
+            val = v
+            cb()
+          }, function (v) {
+            if (cnt++) return
+            val = v
+            ec()
           })
-        }
-
-        return val
-      }, function (val) {
-        try {
-          cb(val)
         } catch (e) {
-          setImmediate(function () {
-            throw e
-          })
+          val = e
+          ec()
         }
-
-        return val
-      })
-
-    return this
-  }
-
-  promise.prototype.spread = function (fn, er) {
-    return this.all().then(function (list) {
-      return typeof fn === 'function' && fn.apply(null, list)
-    }, er)
-  }
-
-  promise.prototype.all = function() {
-    var self = this
-    return this.then(function(list){
-      var p = new promise()
-      if(!(list instanceof Array)) {
-        p.reject(TypeError)
-        return p
+      } else {
+        cn()
       }
+    };
 
-      var cnt = 0
-      var target = list.length
+    function fire() {
 
-      function done() {
-        if (++cnt === target) p.resolve(list)
-      }
-
-      for(var i=0, l=list.length; i<l; i++) {
-        var value = list[i]
-        var ref;
-
-        try {
-          ref = value && value.then
-        } catch (e) {
-          p.reject(e)
-          break
-        }
-
-        (function(i){
-          self.thennable(ref, function(val){
-            list[i] = val
-            done()
-          }, function(val){
-            list[i] = val
-            done()
-          }, function(){
-            done()
-          }, value)
-        })(i)
-      }
-
-      return p
-    })
-  }
-
-  // self object gets globalalized/exported
-  var promiz = {
-
-    // promise factory
-    defer: function () {
-      return new promise(null, null)
-    },
-
-    // calls a function and resolved as a promise
-    fcall: function() {
-      var def = new promise()
-      var args = Array.apply([], arguments)
-      var fn = args.shift()
+      // check if it's a thenable
+      var ref;
       try {
-        var val = fn.apply(null, args)
-        def.resolve(val)
-      } catch(e) {
-        def.reject(e)
-      }
-
-      return def
-    },
-
-    // calls a node-style function (eg. expects callback as function(err, callback))
-    nfcall: function() {
-      var def = new promise()
-      var args = Array.apply([], arguments)
-      var fn = args.shift()
-      try {
-
-        // Add our custom promise callback to the end of the arguments
-        args.push(function(err, val){
-          if(err) {
-            return def.reject(err)
-          }
-          return def.resolve(val)
-        })
-        fn.apply(null, args)
+        ref = val && val.then
       } catch (e) {
-        def.reject(e)
+        val = e
+        state = 2
+        return fire()
       }
 
-      return def
+      thennable(ref, function () {
+        state = 1
+        fire()
+      }, function () {
+        state = 2
+        fire()
+      }, function () {
+        try {
+          if (state == 1 && typeof fn == 'function') {
+            val = fn(val)
+          }
+
+          else if (state == 2 && typeof er == 'function') {
+            val = er(val)
+            state = 1
+          }
+        } catch (e) {
+          val = e
+          return finish()
+        }
+
+        if (val == self) {
+          val = TypeError()
+          finish()
+        } else thennable(ref, function () {
+            finish(3)
+          }, finish, function () {
+            finish(state == 1 && 3)
+          })
+
+      })
     }
+
+
   }
 
   // Export our library object, either for node.js or as a globally scoped variable
-  if (typeof module !== 'undefined') {
-    module.exports = promiz
+  if (typeof module != 'undefined') {
+    module['exports'] = Deferred
   } else {
-    self.Promiz = promiz
+    this['Promiz'] = Deferred
   }
 })()

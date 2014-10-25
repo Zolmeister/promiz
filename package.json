@@ -1,12 +1,12 @@
 {
   "name": "promiz",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "A proper compact promise (promises/A+ spec compliant) library.",
   "main": "promiz.js",
   "scripts": {
     "spec": "promises-aplus-tests test/spec-adapter",
-    "spec-micro": "promises-aplus-tests test/spec-adapter-micro",
-    "test": "jasmine-node test && promises-aplus-tests test/spec-adapter && promises-aplus-tests test/spec-adapter-micro"
+    "test": "mocha test/promiz.js",
+    "es6": "promises-es6-tests test/spec-adapter"
   },
   "repository": {
     "type": "git",
@@ -26,10 +26,12 @@
     "flow control"
   ],
   "devDependencies": {
-    "promises-aplus-tests": "2.0.x",
+    "clay-chai": "0.0.2",
     "grunt": "~0.4.2",
     "grunt-contrib-uglify": "~0.2.7",
-    "jasmine-node": "~1.12.0"
+    "mocha": "2.0.1",
+    "promises-aplus-tests": "2.0.x",
+    "promises-es6-tests": "0.5.0"
   },
   "author": "Zolmeister",
   "license": "MIT",

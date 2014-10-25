@@ -1,7 +1,7 @@
 {
   "name": "promiz",
   "main": "promiz.js",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/Zolmeister/promiz",
   "authors": [
     "Zolmeister <zolikahan@gmail.com>"
