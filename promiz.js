@@ -3,10 +3,9 @@
   Deferred.resolve = function (value) {
     if (!(this._d === 1))
       throw new TypeError()
+
     return new Deferred(function (resolve) {
-      setTimeout(function () {
         resolve(value)
-      })
     })
   }
 
@@ -15,9 +14,7 @@
       throw new TypeError()
 
     return new Deferred(function (resolve, reject) {
-      setTimeout(function () {
         reject(value)
-      })
     })
   }
 
@@ -77,22 +74,26 @@
       return Deferred.reject(new TypeError())
 
     if (arr.length === 0) {
-      return Deferred.resolve(arr)
+      return new Deferred()
     }
 
     var d = new Deferred()
 
-    function done(e) {
+    function done(vv, e) {
+      if (vv) {
+        return d.resolve(vv)
+      }
+
+      if (e) {
+        return d.reject(e)
+      }
+
       var unresolved = arr.reduce(function (cnt, v) {
         if (v && v.then){
           return cnt + 1
         }
         return cnt
       }, 0)
-
-      if (e) {
-        return d.reject(e)
-      }
 
       if(unresolved === 0) {
         d.resolve(arr)
@@ -102,11 +103,9 @@
         var v = arr[i]
         if (v && v.then) {
           v.then(function (r) {
-            arr[i] = r
-            done()
-            return r
+            done(r)
           }, function (e) {
-            done(e)
+            done(null, e)
           })
         }
       })(i) }
@@ -124,6 +123,9 @@
    * @constructor
    */
   function Deferred(resolver) {
+    if (typeof resolver !== 'function' && resolver !== undefined) {
+      throw new TypeError()
+    }
     // states
     // 0: pending
     // 1: resolving

@@ -6,6 +6,7 @@
   "scripts": {
     "spec": "promises-aplus-tests test/spec-adapter",
     "test": "mocha test/promiz.js",
+    "all": "mocha test/promiz.js && promises-aplus-tests test/spec-adapter && promises-es6-tests test/spec-adapter",
     "es6": "promises-es6-tests test/spec-adapter"
   },
   "repository": {
