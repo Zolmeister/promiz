@@ -10,11 +10,6 @@ module.exports = function (grunt) {
           'promiz.min.js': ['promiz.js']
         }
       },
-      micro: {
-        files: {
-          'promiz.micro.min.js': ['promiz.micro.js']
-        }
-      },
       mithril: {
         files: {
           'promiz.mithril.min.js': ['promiz.mithril.js']

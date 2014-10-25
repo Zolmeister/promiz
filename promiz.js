@@ -1,8 +1,8 @@
 (function () {
 
   Deferred.resolve = function (value) {
-    if (!(this._d === 1))
-      throw new TypeError()
+    if (!(this._d == 1))
+      throw TypeError()
 
     return new Deferred(function (resolve) {
         resolve(value)
@@ -10,8 +10,8 @@
   }
 
   Deferred.reject = function (value) {
-    if (!(this._d === 1))
-      throw new TypeError()
+    if (!(this._d == 1))
+      throw TypeError()
 
     return new Deferred(function (resolve, reject) {
         reject(value)
@@ -19,46 +19,38 @@
   }
 
   Deferred.all = function (arr) {
-    if (!(this._d === 1))
-      throw new TypeError()
+    if (!(this._d == 1))
+      throw TypeError()
 
-    if (Object.prototype.toString.call(arr) !== '[object Array]')
-      return Deferred.reject(new TypeError())
-
-    if (arr.length === 0) {
-      return Deferred.resolve(arr)
-    }
+    if (!(arr instanceof Array))
+      return Deferred.reject(TypeError())
 
     var d = new Deferred()
 
-    function done(e) {
+    function done(e, v) {
+      if (v)
+        return d.resolve(v)
+
+      if (e)
+        return d.reject(e)
+
       var unresolved = arr.reduce(function (cnt, v) {
-        if (v && v.then){
+        if (v && v.then)
           return cnt + 1
-        }
         return cnt
       }, 0)
 
-      if (e) {
-        return d.reject(e)
-      }
-
-      if(unresolved === 0) {
+      if(unresolved == 0)
         d.resolve(arr)
-      }
 
-      for(var i=0; i < arr.length; i++) { (function (i) {
-        var v = arr[i]
-        if (v && v.then) {
+      arr.map(function (v, i) {
+        if (v && v.then)
           v.then(function (r) {
             arr[i] = r
             done()
             return r
-          }, function (e) {
-            done(e)
-          })
-        }
-      })(i) }
+          }, done)
+      })
     }
 
     done()
@@ -67,48 +59,39 @@
   }
 
   Deferred.race = function (arr) {
-    if (!(this._d === 1))
-      throw new TypeError()
+    if (!(this._d == 1))
+      throw TypeError()
 
-    if (Object.prototype.toString.call(arr) !== '[object Array]')
-      return Deferred.reject(new TypeError())
+    if (!(arr instanceof Array))
+      return Deferred.reject(TypeError())
 
-    if (arr.length === 0) {
+    if (arr.length == 0)
       return new Deferred()
-    }
 
     var d = new Deferred()
 
-    function done(vv, e) {
-      if (vv) {
-        return d.resolve(vv)
-      }
+    function done(e, v) {
+      if (v)
+        return d.resolve(v)
 
-      if (e) {
+      if (e)
         return d.reject(e)
-      }
 
       var unresolved = arr.reduce(function (cnt, v) {
-        if (v && v.then){
+        if (v && v.then)
           return cnt + 1
-        }
         return cnt
       }, 0)
 
-      if(unresolved === 0) {
+      if(unresolved == 0)
         d.resolve(arr)
-      }
 
-      for(var i=0; i < arr.length; i++) { (function (i) {
-        var v = arr[i]
-        if (v && v.then) {
+      arr.map(function (v, i) {
+        if (v && v.then)
           v.then(function (r) {
-            done(r)
-          }, function (e) {
-            done(null, e)
-          })
-        }
-      })(i) }
+            done(null, r)
+          }, done)
+      })
     }
 
     done()
@@ -123,9 +106,9 @@
    * @constructor
    */
   function Deferred(resolver) {
-    if (typeof resolver !== 'function' && resolver !== undefined) {
-      throw new TypeError()
-    }
+    if (typeof resolver != 'function' && resolver != undefined)
+      throw TypeError()
+
     // states
     // 0: pending
     // 1: resolving
@@ -278,6 +261,6 @@
   if (typeof module != 'undefined') {
     module['exports'] = Deferred
   } else {
-    this['Promiz'] = Deferred
+    this['Promise'] = Deferred
   }
 })()
