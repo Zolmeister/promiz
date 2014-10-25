@@ -1,19 +1,124 @@
 (function () {
 
   Deferred.resolve = function (value) {
+    if (!(this._d === 1))
+      throw new TypeError()
     return new Deferred(function (resolve) {
       setTimeout(function () {
         resolve(value)
       })
     })
   }
+
   Deferred.reject = function (value) {
+    if (!(this._d === 1))
+      throw new TypeError()
+
     return new Deferred(function (resolve, reject) {
       setTimeout(function () {
         reject(value)
       })
     })
   }
+
+  Deferred.all = function (arr) {
+    if (!(this._d === 1))
+      throw new TypeError()
+
+    if (Object.prototype.toString.call(arr) !== '[object Array]')
+      return Deferred.reject(new TypeError())
+
+    if (arr.length === 0) {
+      return Deferred.resolve(arr)
+    }
+
+    var d = new Deferred()
+
+    function done(e) {
+      var unresolved = arr.reduce(function (cnt, v) {
+        if (v && v.then){
+          return cnt + 1
+        }
+        return cnt
+      }, 0)
+
+      if (e) {
+        return d.reject(e)
+      }
+
+      if(unresolved === 0) {
+        d.resolve(arr)
+      }
+
+      for(var i=0; i < arr.length; i++) { (function (i) {
+        var v = arr[i]
+        if (v && v.then) {
+          v.then(function (r) {
+            arr[i] = r
+            done()
+            return r
+          }, function (e) {
+            done(e)
+          })
+        }
+      })(i) }
+    }
+
+    done()
+
+    return d
+  }
+
+  Deferred.race = function (arr) {
+    if (!(this._d === 1))
+      throw new TypeError()
+
+    if (Object.prototype.toString.call(arr) !== '[object Array]')
+      return Deferred.reject(new TypeError())
+
+    if (arr.length === 0) {
+      return Deferred.resolve(arr)
+    }
+
+    var d = new Deferred()
+
+    function done(e) {
+      var unresolved = arr.reduce(function (cnt, v) {
+        if (v && v.then){
+          return cnt + 1
+        }
+        return cnt
+      }, 0)
+
+      if (e) {
+        return d.reject(e)
+      }
+
+      if(unresolved === 0) {
+        d.resolve(arr)
+      }
+
+      for(var i=0; i < arr.length; i++) { (function (i) {
+        var v = arr[i]
+        if (v && v.then) {
+          v.then(function (r) {
+            arr[i] = r
+            done()
+            return r
+          }, function (e) {
+            done(e)
+          })
+        }
+      })(i) }
+    }
+
+    done()
+
+    return d
+  }
+
+  Deferred._d = 1
+
 
   /**
    * @constructor
@@ -58,8 +163,6 @@
     }
 
     self['then'] = function (_fn, _er) {
-      fn = _fn
-      er = _er
       var d = new Deferred()
       d.fn = _fn
       d.er = _er
@@ -73,6 +176,10 @@
         next.push(d)
       }
       return d
+    }
+
+    self['catch'] = function (_er) {
+      return self['then'](null, _er)
     }
 
     var finish = function (type) {

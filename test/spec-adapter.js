@@ -1,4 +1,5 @@
 var Promise = require('./../promiz');
+GLOBAL.assert = require('assert')
 module.exports = {
   resolved: function (value) {
     return Promise.resolve(value)

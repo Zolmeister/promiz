@@ -225,6 +225,21 @@ describe('promiz library', function(){
       })
     })
 
+    it('isnt called twice', function (done) {
+      var p1 = new Promise(function (resolve) {
+        resolve(1)
+      })
+
+      p1.then(function (r1) {
+          r1.should.be(1)
+          setTimeout(function () {
+            done()
+          }, 10)
+      }).catch(function (e) {
+        done(new Error())
+      })
+    })
+
   })
 
   describe('error handling', function(){
