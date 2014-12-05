@@ -320,4 +320,30 @@ describe('promiz library', function(){
     })
 
   })
+
+  describe('performance', function () {
+    it('completes faster than setTimeout', function (done) {
+      resolver = null
+      thenCalled = false
+      var p = new Promise(function (resolve) {
+        resolver = resolve
+      })
+
+      p.then(function () {
+        thenCalled = true
+      })
+
+      start = Date.now()
+
+      resolver('resolved')
+
+      setTimeout(function () {
+        delta = Date.now() - start
+        expect(delta === 0 || delta === 0)
+        expect(thenCalled).to.be(true)
+        done()
+      })
+
+    })
+  })
 })
