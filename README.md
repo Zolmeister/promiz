@@ -86,4 +86,3 @@ Promise.race([promise1, promise2])
 ```
 
 ### Licence: MIT
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/c594fb0acd3c320bcdfbf4d6e3ce8b8c "githalytics.com")](http://githalytics.com/Zolmeister/promiz)
