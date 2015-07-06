@@ -37,6 +37,9 @@
     if (!(this._d == 1))
       throw TypeError()
 
+    if (value instanceof Deferred)
+      return value
+
     return new Deferred(function (resolve) {
         resolve(value)
     })
@@ -139,7 +142,11 @@
    * @constructor
    */
   function Deferred(resolver) {
+    'use strict'
     if (typeof resolver != 'function' && resolver != undefined)
+      throw TypeError()
+
+    if (typeof this != 'object' || (this && this.then))
       throw TypeError()
 
     // states
@@ -157,31 +164,38 @@
     self['promise'] = self
 
     self['resolve'] = function (v) {
-      fn = this.fn
-      er = this.er
+      fn = self.fn
+      er = self.er
       if (!state) {
         val = v
         state = 1
 
         nextTick(fire)
       }
-      return this
+      return self
     }
 
     self['reject'] = function (v) {
-      fn = this.fn
-      er = this.er
+      fn = self.fn
+      er = self.er
       if (!state) {
         val = v
         state = 2
 
         nextTick(fire)
+
       }
-      return this
+      return self
     }
 
+    self['_d'] = 1
+
     self['then'] = function (_fn, _er) {
+      if (!(this._d == 1))
+        throw TypeError()
+
       var d = new Deferred()
+
       d.fn = _fn
       d.er = _er
       if (state == 3) {
@@ -193,6 +207,7 @@
       else {
         next.push(d)
       }
+
       return d
     }
 
