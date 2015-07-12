@@ -5,7 +5,7 @@
          align="right" alt="Promises/A+ logo" />
 </a>
 A polyfill for ES6-style Promises in 887 bytes (gzip) (v0.3 [Blog Post](http://www.zolmeister.com/2014/01/promiz-micro-promises-in-228-bytes.html)) ~~([How it was built](http://www.zolmeister.com/2013/07/promizjs.html))~~  
-![build-status](https://travis-ci.org/Zolmeister/promiz.png?branch=master)
+![build-status](https://travis-ci.org/Zolmeister/promiz.svg?branch=master)
 ## Install
 ```bash
 # Node.js
