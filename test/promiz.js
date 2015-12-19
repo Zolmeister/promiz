@@ -21,6 +21,15 @@ describe('promiz library', function(){
         done()
       })
     })
+
+    it('rejects with resolved promise', function (done) {
+      Promise.reject(Promise.resolve()).then(function () {
+        done(new Error('then recieved an error'))
+      }, function (err) {
+        expect(err instanceof Promise).to.be(true)
+        done()
+      })
+    })
   })
 
 

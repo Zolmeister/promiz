@@ -234,6 +234,10 @@
     // ref : reference to 'then' function
     // cb, ec, cn : successCallback, failureCallback, notThennableCallback
     function thennable (ref, cb, ec, cn) {
+      // Promises can be rejected with other promises, which should pass through
+      if (state == 2) {
+        return cn()
+      }
       if ((typeof val == 'object' || typeof val == 'function') && typeof ref == 'function') {
         try {
 
