@@ -311,7 +311,7 @@
 
   // Export our library object, either for node.js or as a globally scoped variable
   if (typeof module != 'undefined') {
-    module['exports'] = global['Promise'] || Deferred
+    module['exports'] = Deferred
   } else {
     global['Promise'] = global['Promise'] || Deferred
   }
