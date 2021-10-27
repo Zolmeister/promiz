@@ -1,5 +1,5 @@
 (function () {
-  global = this
+  global = typeof window !== 'undefined' ? window : this
 
   var queueId = 1
   var queue = {}
